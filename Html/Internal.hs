@@ -9,6 +9,10 @@ newtype Html
 newtype Structure
   = Structure String
 
+instance Semigroup Structure where
+  (<>) c1 c2 = Structure $ getStructureString c1 <> getStructureString c2
+
+
 type Title
   = String
 
@@ -28,10 +32,6 @@ p_ = Structure . el "p" . escape
 
 h1_ :: String -> Structure
 h1_ = Structure . el "h1" . escape
-
-append_ :: Structure -> Structure -> Structure
-append_ c1 c2 =
-  Structure (getStructureString c1 <> getStructureString c2)
 
 _l :: String -> [Structure] -> Structure
 _l tag = Structure . el tag . concatMap (el "li" . getStructureString)
@@ -75,4 +75,4 @@ escape =
         '\'' -> "&#39;"
         _ -> [c]
   in
-    concat . map escapeChar
+    concatMap escapeChar
