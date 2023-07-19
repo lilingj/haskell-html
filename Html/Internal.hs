@@ -1,5 +1,6 @@
 module Html.Internal where
 import GHC.Exts.Heap (StgInfoTable(code))
+import Numeric.Natural
 
 -- * Types
 
@@ -11,6 +12,9 @@ newtype Structure
 
 instance Semigroup Structure where
   (<>) c1 c2 = Structure $ getStructureString c1 <> getStructureString c2
+
+instance Monoid Structure where
+  mempty = Structure ""
 
 
 type Title
@@ -30,8 +34,8 @@ html_ title content =
 p_ :: String -> Structure
 p_ = Structure . el "p" . escape
 
-h1_ :: String -> Structure
-h1_ = Structure . el "h1" . escape
+h_ :: Natural -> String -> Structure
+h_ n = Structure . el ("h" <> show n) . escape
 
 _l :: String -> [Structure] -> Structure
 _l tag = Structure . el tag . concatMap (el "li" . getStructureString)
