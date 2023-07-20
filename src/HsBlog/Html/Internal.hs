@@ -1,5 +1,5 @@
-module Html.Internal where
-import GHC.Exts.Heap (StgInfoTable(code))
+module HsBlog.Html.Internal where
+
 import Numeric.Natural
 
 -- * Types
@@ -9,13 +9,6 @@ newtype Html
 
 newtype Structure
   = Structure String
-
-instance Semigroup Structure where
-  (<>) c1 c2 = Structure $ getStructureString c1 <> getStructureString c2
-
-instance Monoid Structure where
-  mempty = Structure ""
-
 
 type Title
   = String
@@ -37,17 +30,23 @@ p_ = Structure . el "p" . escape
 h_ :: Natural -> String -> Structure
 h_ n = Structure . el ("h" <> show n) . escape
 
-_l :: String -> [Structure] -> Structure
-_l tag = Structure . el tag . concatMap (el "li" . getStructureString)
-
 ul_ :: [Structure] -> Structure
-ul_ = _l "ul"
+ul_ =
+  Structure . el "ul" . concat . map (el "li" . getStructureString)
 
 ol_ :: [Structure] -> Structure
-ol_ = _l "ol"
+ol_ =
+  Structure . el "ol" . concat . map (el "li" . getStructureString)
 
 code_ :: String -> Structure
 code_ = Structure . el "pre" . escape
+
+instance Semigroup Structure where
+  (<>) c1 c2 =
+    Structure (getStructureString c1 <> getStructureString c2)
+
+instance Monoid Structure where
+  mempty = Structure ""
 
 -- * Render
 
@@ -79,4 +78,4 @@ escape =
         '\'' -> "&#39;"
         _ -> [c]
   in
-    concatMap escapeChar
+    concat . map escapeChar

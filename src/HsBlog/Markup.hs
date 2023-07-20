@@ -1,14 +1,12 @@
--- Markup.hs
-
-module Markup
+module HsBlog.Markup
   ( Document
   , Structure(..)
+  , parse
   )
 where
 
 import Numeric.Natural
-import Data.Maybe
-import Distribution.Simple.Program.HcPkg (list)
+import Data.Maybe (maybeToList)
 
 type Document
   = [Structure]
@@ -19,6 +17,7 @@ data Structure
   | UnorderedList [String]
   | OrderedList [String]
   | CodeBlock [String]
+  deriving (Eq, Show)
 
 
 parse :: String -> Document
@@ -32,32 +31,34 @@ parseLines context txts =
 
     -- Heading 1 case
     ('*' : ' ' : line) : rest ->
-      appendIfExist context ((Heading 1 . trim $ line) : parseLines Nothing rest)
+      addIfExist context $ (Heading 1 . trim $ line) : parseLines Nothing rest
 
     -- Unordered list case
     ('-' : ' ' : line) : rest ->
       case context of
         Just (UnorderedList list) ->
           parseLines (Just . UnorderedList $ list <> [trim line]) rest
+
         _ ->
-          appendIfExist context $ parseLines (Just . UnorderedList $ [trim line]) rest
+          addIfExist context $ parseLines (Just . UnorderedList $ [trim line]) rest
 
     -- Ordered list case
     ('#' : ' ' : line) : rest ->
       case context of
         Just (OrderedList list) ->
           parseLines (Just . OrderedList $ list <> [trim line]) rest
-        _ -> 
-          appendIfExist context $ parseLines (Just . OrderedList $ [trim line]) rest
+
+        _ ->
+          addIfExist context $ parseLines (Just . OrderedList $ [trim line]) rest
 
     -- Code block case
     ('>' : ' ' : line) : rest ->
       case context of
         Just (CodeBlock code) ->
-          parseLines (Just . CodeBlock $ code <> [trim line]) rest
-        _ ->
-          appendIfExist context $ parseLines (Just . CodeBlock $ [line]) rest
+          parseLines (Just . CodeBlock $ code <> [line]) rest
 
+        _ ->
+          addIfExist context $ parseLines (Just . CodeBlock $ [line]) rest
 
     -- Paragraph case
     currentLine : rest ->
@@ -66,16 +67,16 @@ parseLines context txts =
       in
         if line == ""
           then
-            appendIfExist context (parseLines Nothing rest)
+            addIfExist context (parseLines Nothing rest)
           else
             case context of
               Just (Paragraph paragraph) ->
                 parseLines (Just . Paragraph . unwords $ [paragraph, line]) rest
               _ ->
-                appendIfExist context $ parseLines (Just . Paragraph $ line) rest
+                addIfExist context $ parseLines (Just . Paragraph $ line) rest
 
 trim :: String -> String
 trim = unwords . words
 
-appendIfExist :: Maybe a -> [a] -> [a]
-appendIfExist = maybe id (:)
+addIfExist :: Maybe a -> [a] -> [a]
+addIfExist = maybe id (:)

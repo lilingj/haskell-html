@@ -1,5 +1,5 @@
-1. 多个`*`: 标题
-2. `-`: 无序列表
-3. `#`: 有序列表
-4. `>`: 代码块
-5. 没有空行的文字: 段落
+# hs-blog
+
+One day it will be a static blog generator.
+
+[Read the book](https://lhbg-book.link).
